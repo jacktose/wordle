@@ -4,18 +4,21 @@ import sys
 import string
 
 def fill_dots(pattern: str, letters_avail: iter[str]) -> list[str]:
+    # TODO: replace most of this with itertools.product(*replace_wildcards_with_options())
     filled = []
     for i, l in enumerate(pattern):
         if l == '.':
             for letter in letters_avail:
                 filled += fill_dots(pattern[:i] + letter + pattern[i+1:], letters_avail)
-            return filled
         elif l == '[':
             j = pattern.index(']', i+1)
             for letter in letters_avail:
                 if letter in pattern[i+1:j]:
                     filled += fill_dots(pattern[:i] + letter + pattern[j+1:], letters_avail)
-            return filled
+        else:
+            continue
+        filled.append('')
+        return filled
     else:
         return [pattern]
 
