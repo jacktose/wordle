@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# echo "nargs: $#"
+# argarr=("$@")
+# echo "lenargs: ${#argarr[@]}"
+
+! read -r -d '' -a poss
+all_chars="$(printf '%s' "${poss[@]}")"
+histo_all="$(<<< "$all_chars" fold -w 1 | sort | uniq -c | sort -k 1nr,1)"
+i=0; while read -n 1 c; do chars[$(( i++ % 5 ))]+="$c"; done <<< "$all_chars"
+for i in "${!chars[@]}"; do
+    histo[$i]="$(fold -w 1 <<< "${chars[$i]}" | sort | uniq -c | sort -k 1nr,1)"
+done
+# declare -p histo
+paste <(echo "$histo_all") <(echo "${histo[0]}") <(echo "${histo[1]}") <(echo "${histo[2]}") <(echo "${histo[3]}") <(echo "${histo[4]}") \
+    | column --table --separator $'\t' --table-columns 'ALL,1,2,3,4,5' --table-right 0
