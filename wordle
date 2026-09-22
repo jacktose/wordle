@@ -27,20 +27,21 @@ while (( $# > 0 )); do
 
     declare -a answer yellows
     declare -l grays
+    declare display='\E[1;37m'
     for (( i=0; i<${#result}; i++ )); do
         guess_char="${guess:$i:1}"
         result_char="${result:$i:1}"
         case "$result_char" in
-            [[:upper:]] ) answer[$i]="$guess_char";;
-            [[:lower:]] ) yellows[$i]+="$guess_char";;  # TODO: Handle secondary yellows!
-            . ) grays+="$guess_char";;  # TODO: Handle secondary grays!
+            [[:upper:]] ) answer[$i]="$guess_char"; display+="\E[48;2;0;128;0m";;
+            [[:lower:]] ) yellows[$i]+="$guess_char"; display+="\E[48;2;193;156;0m";;  # TODO: Handle secondary yellows!
+            . ) grays+="$guess_char"; display+="\E[48;5;240m";;  # TODO: Handle secondary grays!
             # e.g. ./wordle sLaTe S.... hokum .o... scorn S.O.n snoop SNO.. ?
         esac
-
-        # something
+        display+="${guess_char^^}"
     done
+    display+='\E[0m'
+    [ -t 1 ] && echo -e "$display"
 
-    # something
     shift 2
 done
 
@@ -59,15 +60,14 @@ done
 pattern+='$/'
 # declare -p pattern
 printf -v all_yellows '%s' "${yellows[@]}"
-for (( i=0; i<${#all_yellows}; i++ )); do
-    pattern+=" && /${all_yellows:$i:1}/"
-done
-# declare -p pattern
-# echo "$pattern"
-# echo "awk '$pattern' words"
-# readarray -t poss < <(awk "$pattern" words)
+printf -v all_greens '%s' "${answer[@]}"
+all_yellows="${all_yellows//[$all_greens]}"
+all_yellows="$(<<< "$all_yellows" fold -w 1 | sort -u)"
+while read y; do
+    pattern+=" && /$y/"
+done <<< "$all_yellows"
+[ -t 1 ] && echo "awk '$pattern' words"
 poss="$(awk "$pattern" words)"
-# declare -p poss
 if [ -t 1 ]; then
     echo "$(wc -l <<< "${poss[@]}") possible answers:"
     <<< "${poss[@]}" column --output-width 80
