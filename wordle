@@ -1,22 +1,18 @@
 #!/bin/bash
 
-# echo "nargs: $#"
-# argarr=("$@")
-# echo "lenargs: ${#argarr[@]}"
-# echo "nargmod: $(($# % 2))"
-# case $# in
-#     2 | 4 | 6 | 8 | 10 ) :;;
-#     * ) echo >&2 "Must provide 2, 4, 6, 8, or 10 args.";;
-# esac
+# Check number of args
 if (($# % 2)) || (($# < 2)) || (($# > 10)); then
     echo >&2 "Must provide 2, 4, 6, 8, or 10 args."
     exit $(($# + 100))
 fi
 n_args=$#
 
+# Loop through each pair of inputs
 while (( $# > 0 )); do
+    # Get next 2 args (representing 2 guess)
     guess="${1,,}"
     result="${2//[-_]/.}"
+    # Validate args/guess
     [[ "$guess" =~ ^[a-zA-Z]{5}$ ]] || { echo >&2 "Invalid guess: $guess"; exit 99; }
     [[ "$result" =~ ^[.a-zA-Z]{5}$ ]] || { echo >&2 "Invalid result: $result"; exit 99; }
     [[ "$guess" =~ ${result,,} ]] || { echo >&2 "Result ${result} does not match guess ${guess}."; exit 99; }
@@ -26,9 +22,10 @@ while (( $# > 0 )); do
         exit 99
     fi
 
+    # Parse guess
     declare -a answer yellows
     declare -l grays
-    declare display='\E[1;37m'
+    display='\E[1;37m'
     for (( i=0; i<${#result}; i++ )); do
         guess_char="${guess:$i:1}"
         result_char="${result:$i:1}"
@@ -45,8 +42,7 @@ while (( $# > 0 )); do
 
     shift 2
 done
-
-# declare -p answer yellows grays
+#declare -p answer yellows grays
 
 # WordleBot recommended second guesses
 if [ -t 1 ] && (( $n_args == 2 )) && [[ -r "_bot_$guess" ]]; then
@@ -58,6 +54,7 @@ if [ -t 1 ] && (( $n_args == 2 )) && [[ -r "_bot_$guess" ]]; then
     done < "_bot_$guess" 
 fi
 
+# Construct pattern
 declare -l pattern='/^'
 for (( i=0; i<5; i++ )); do
     if [[ -v answer[$i] ]]; then
@@ -78,8 +75,12 @@ while read y; do
     pattern+=" && /$y/"
 done <<< "$all_yellows"
 [ -t 1 ] && echo "awk '$pattern' words"
+
+# Search for possible answers
 poss="$(awk "$pattern" words)"
 #declare -p poss >&2
+
+# Output
 if [ -t 1 ]; then
     if [[ -z "$poss" ]]; then
         echo "No possible answers! Check your inputs."
