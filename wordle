@@ -79,9 +79,15 @@ while read y; do
 done <<< "$all_yellows"
 [ -t 1 ] && echo "awk '$pattern' words"
 poss="$(awk "$pattern" words)"
+#declare -p poss >&2
 if [ -t 1 ]; then
+    if [[ -z "$poss" ]]; then
+        echo "No possible answers! Check your inputs."
+        exit
+    fi
     echo "$(wc -l <<< "${poss[@]}") possible answers:"
-    <<< "${poss[@]}" column --output-width 80
+    args=''; (($(tput cols) > 80)) && args='--output-width 80'
+    <<< "${poss[@]}" column $args
 else
     echo "${poss}"
 fi
