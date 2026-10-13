@@ -1,0 +1,23 @@
+#!/bin/bash
+
+FILE="./guesses"
+
+[ -r "$FILE" ] || return 2
+(( $# > 0 )) || return 3
+
+max=0
+declare -a cand
+while read w; do
+    n=0
+    for c in "$@"; do
+        [[ "$w" = *["$c"]* ]] && ((n++))
+    done
+    #printf '%s\t%i\n' "$w" "$n"
+    if (( n > max )); then
+        max=$n
+        cand=($w)
+    elif (( n == max )); then
+        cand+=($w)
+    fi
+done < "$FILE"
+printf '%s\n' "${cand[@]}"

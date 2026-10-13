@@ -1,0 +1,10 @@
+#!/bin/bash
+
+! read -r -d '' bads  # stdin
+from="$1"  # e.g. words
+
+[ -w "$from" ] || { echo >&2 "Cannot write to file $from"; exit 3; }
+
+echo >&2 -n "subtracting $(wc -l <<< "$bads") lines from $(wc -l < "$from") ... "
+updated="$(<<< "$bads" sort -u | comm -13 - "$from")" && echo "$updated" > "$from"
+echo >&2 "leaving $(wc -l < "$from")"
