@@ -12,6 +12,7 @@ if (($# % 2)) || (($# < 2)) || (($# > 10)); then
     echo >&2 "Must provide 2, 4, 6, 8, or 10 args."
     exit $(($# + 100))
 fi
+n_args=$#
 
 while (( $# > 0 )); do
     guess="${1,,}"
@@ -46,6 +47,16 @@ while (( $# > 0 )); do
 done
 
 # declare -p answer yellows grays
+
+# WordleBot recommended second guesses
+if [ -t 1 ] && (( $n_args == 2 )) && [[ -r "_bot_$guess" ]]; then
+    while read -r key rec; do
+        if [[ "${key//[-_]/.}" = "$result" ]]; then
+            [[ -n "$rec" ]] && echo "WordleBot recommends: $rec"
+            break
+        fi
+    done < "_bot_$guess" 
+fi
 
 declare -l pattern='/^'
 for (( i=0; i<5; i++ )); do
