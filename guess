@@ -1,0 +1,54 @@
+#!/bin/bash
+
+guess () {
+    local ans guess
+    ans="${1,,}"
+    guess="${2,,}"
+    ((${#ans} == ${#guess})) || >&2 echo 'warning: lengths don'\''t match'
+
+    # populate greens (& .)
+    local i ans_c guess_c result
+    for ((i=0; i<${#guess}; i++)); do
+        ans_c="${ans:${i}:1}"
+        guess_c="${guess:${i}:1}"
+        if [[ "${ans_c}" = "${guess_c}" ]]; then
+            result+="${guess_c^^}"
+        else
+            result+='.'
+        fi
+    done
+    #>&2 echo "${result}"
+
+    # populate yellows
+    local res_c ans_matches res_matches
+    for ((i=0; i<${#guess}; i++)); do
+        ans_c="${ans:${i}:1}"
+        guess_c="${guess:${i}:1}"
+        res_c="${result:${i}:1}"
+        [[ "${res_c}" = '.' ]] || continue
+        [[ "${ans}" = *"${guess_c}"* ]] || continue  # skip?
+        ans_matches="${ans//[^${guess_c}]}"
+        res_matches="${result//[^${guess_c,,}${guess_c^^}]}"
+        #>&2 printf '%s\t' "${guess_c}" "${ans_matches}" "${res_matches}"; >&2 printf '\n'
+        if (( ${#res_matches} < ${#ans_matches} )); then
+            result="${result:0:i}${guess_c,,}${result:i+1}"
+        fi
+    done
+
+    # TODO: color output
+    printf '%s' "${result}"
+}
+#guess "$@"; echo
+
+# TODO: total up groups & largest size for each guess?
+#       (Either have to iterate the other way, or store results in array per guess as I go?)
+
+printf '\t%s' "$@"; printf '\n'
+while read -r cand; do
+    printf '%s' "${cand}"
+    for g in "$@"; do
+        printf '\t'
+        guess "${cand}" "${g}"
+    done
+    printf '\n'
+done
