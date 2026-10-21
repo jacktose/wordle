@@ -44,14 +44,16 @@ while (( $# > 0 )); do
 done
 #declare -p answer yellows grays
 
+here="$(dirname "$0")"
+
 # WordleBot recommended second guesses
-if [ -t 1 ] && (( $n_args == 2 )) && [[ -r "_bot_$guess" ]]; then
+if [ -t 1 ] && (( $n_args == 2 )) && bot_file="$here/_bot_$guess" && [[ -r "$bot_file" ]]; then
     while read -r key rec; do
         if [[ "${key//[-_]/.}" = "$result" ]]; then
             [[ -n "$rec" ]] && echo "WordleBot recommends: $rec"
             break
         fi
-    done < "_bot_$guess" 
+    done < "$bot_file" 
 fi
 
 # Construct pattern
@@ -77,7 +79,7 @@ done <<< "$all_yellows"
 [ -t 1 ] && echo "awk '$pattern' words"
 
 # Search for possible answers
-poss="$(awk "$pattern" words)"
+poss="$(awk "$pattern" "$here/words")"
 #declare -p poss >&2
 
 # Output

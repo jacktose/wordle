@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILE="./guesses"
+FILE="$(dirname "$0")/guesses"
 
 [ -r "$FILE" ] || return 2
 (( $# > 0 )) || return 3
